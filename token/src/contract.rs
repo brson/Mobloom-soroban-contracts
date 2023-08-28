@@ -8,6 +8,7 @@ use crate::event;
 use crate::metadata::{read_decimal, read_name, read_symbol, write_metadata};
 use soroban_sdk::{contractimpl, Address, Bytes, Env};
 use soroban_token_sdk::TokenMetadata;
+use crate::storage_types::DataKey;
 
 pub trait TokenTrait {
     fn initialize(e: Env, admin: Address, decimal: u32, name: Bytes, symbol: Bytes);
@@ -38,13 +39,19 @@ pub trait TokenTrait {
 
     fn mint(e: Env, to: Address, amount: i128);
 
-    fn set_admin(e: Env, new_admin: Address);
-
     fn decimals(e: Env) -> u32;
 
     fn name(e: Env) -> Bytes;
 
     fn symbol(e: Env) -> Bytes;
+
+    fn get_min_voting_power(e: Env) -> i128;
+
+    fn get_min_proposal_power(e: Env) -> i128;
+
+    fn set_min_voting_power(e: Env, min_power: i128);
+
+    fn set_min_proposal_power(e: Env, min_power: i128);
 }
 
 fn check_nonnegative_amount(amount: i128) {
@@ -179,11 +186,26 @@ impl TokenTrait for Token {
         event::mint(&e, admin, to, amount);
     }
 
-    fn set_admin(e: Env, new_admin: Address) {
-        let admin = read_administrator(&e);
-        admin.require_auth();
-        write_administrator(&e, &new_admin);
-        event::set_admin(&e, admin, new_admin);
+    fn get_min_voting_power(env: Env) -> i128 {
+        let min_voting_power: i128 = env.storage()
+            .get(&DataKey::MinVoteP)
+            .unwrap().unwrap_or(0);
+        min_voting_power
+    }
+
+    fn set_min_voting_power(env: Env, min_power: i128) {
+        env.storage().set(&DataKey::MinVoteP, &min_power);
+    }
+
+    fn get_min_proposal_power(env: Env) -> i128 {
+        let min_proposal_power: i128 = env.storage()
+            .get(&DataKey::MinPropP)
+            .unwrap().unwrap_or(0);
+        min_proposal_power
+    }
+
+    fn set_min_proposal_power(env: Env, min_power: i128) {
+        env.storage().set(&DataKey::MinPropP, &min_power);
     }
 
     fn decimals(e: Env) -> u32 {

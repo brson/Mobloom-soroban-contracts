@@ -4,7 +4,7 @@ use crate::storage::core::CoreState;
 use crate::utils::core::{can_init_contract, set_core_state};
 
 use soroban_sdk::{
-    contractimpl, panic_with_error, vec, Address, Bytes, BytesN, Env, IntoVal, RawVal, Symbol, Vec,
+    contractimpl, panic_with_error, vec, Address, Bytes, BytesN, Env, IntoVal, RawVal, Symbol, Vec, String
 };
 pub trait DaoContractTrait {
     fn init(
@@ -13,6 +13,8 @@ pub trait DaoContractTrait {
         token_wasm_hash: BytesN<32>,
         gov_token_name: Bytes,
         gov_token_symbol: Bytes,
+        voting_power: i128,
+        proposal_power: i128,
         shareholders: Vec<(Address, i128)>,
     ) -> (Address, RawVal);
 }
@@ -27,6 +29,8 @@ impl DaoContractTrait for DaoContract {
         token_wasm_hash: BytesN<32>,
         gov_token_name: Bytes,
         gov_token_symbol: Bytes,
+        voting_power: i128,
+        proposal_power: i128,
         shareholders: Vec<(Address, i128)>,
     ) -> (Address, RawVal) {
         can_init_contract(&env);
@@ -50,13 +54,23 @@ impl DaoContractTrait for DaoContract {
         let res: RawVal = env.invoke_contract(&id, &init_fn, init_args);
 
         let mint_fn: Symbol = Symbol::short("mint");
+        let authorize_fn: Symbol = Symbol::short("set_authorized");
+
+        let set_proposal_power_fn: Symbol = Symbol::short("set_min_proposal_power");
+        let set_voting_power_fn: Symbol = Symbol::short("set_min_voting_power");
+        let proposal_power_res: RawVal = env.invoke_contract(&id, &set_proposal_power_fn, vec![&env, proposal_power.into_val(&env)]);
+        let voting_power_res: RawVal = env.invoke_contract(&id, &set_voting_power_fn, vec![&env, voting_power.into_val(&env)]);
         for shareholder in shareholders {
             match shareholder {
                 Ok((shareholder_address, amount)) => {
                     let shareholder_address_raw: RawVal = shareholder_address.to_raw();
+
+                    let auth_args: Vec<RawVal> = vec![&env, shareholder_address_raw, true.into_val(&env)];
+                    let auth_res: RawVal = env.invoke_contract(&id, &authorize_fn, auth_args);
+
                     let mint_args: Vec<RawVal> =
                         vec![&env, shareholder_address_raw, amount.into_val(&env)];
-                    let _: RawVal = env.invoke_contract(&id, &mint_fn, mint_args);
+                    let mint_res: RawVal = env.invoke_contract(&id, &mint_fn, mint_args);
                 }
                 Err(_) => {
                     // Handle the ConversionError as needed
@@ -74,4 +88,5 @@ impl DaoContractTrait for DaoContract {
 
         (id, res)
     }
+    
 }
