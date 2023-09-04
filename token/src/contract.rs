@@ -6,18 +6,17 @@ use crate::balance::{is_authorized, write_authorization};
 use crate::balance::{read_balance, receive_balance, spend_balance};
 use crate::event;
 use crate::metadata::{read_decimal, read_name, read_symbol, write_metadata};
-use soroban_sdk::{contractimpl, Address, Bytes, Env};
+use crate::storage_types::INSTANCE_BUMP_AMOUNT;
+use soroban_sdk::{contract, contractimpl, Address, Env, String};
 use soroban_token_sdk::TokenMetadata;
 use crate::storage_types::DataKey;
 
 pub trait TokenTrait {
-    fn initialize(e: Env, admin: Address, decimal: u32, name: Bytes, symbol: Bytes);
+    fn initialize(e: Env, admin: Address, decimal: u32, name: String, symbol: String);
 
     fn allowance(e: Env, from: Address, spender: Address) -> i128;
 
-    fn increase_allowance(e: Env, from: Address, spender: Address, amount: i128);
-
-    fn decrease_allowance(e: Env, from: Address, spender: Address, amount: i128);
+    fn approve(e: Env, from: Address, spender: Address, amount: i128, expiration_ledger: u32);
 
     fn balance(e: Env, id: Address) -> i128;
 
@@ -39,19 +38,21 @@ pub trait TokenTrait {
 
     fn mint(e: Env, to: Address, amount: i128);
 
+    fn set_admin(e: Env, new_admin: Address);
+
     fn decimals(e: Env) -> u32;
 
-    fn name(e: Env) -> Bytes;
+    fn name(e: Env) -> String;
 
-    fn symbol(e: Env) -> Bytes;
+    fn symbol(e: Env) -> String;
 
     fn get_min_voting_power(e: Env) -> i128;
 
     fn get_min_proposal_power(e: Env) -> i128;
 
-    fn set_min_voting_power(e: Env, min_power: i128);
+    fn set_p_pow(e: Env, min_power: i128);
 
-    fn set_min_proposal_power(e: Env, min_power: i128);
+    fn set_v_pow(e: Env, min_power: i128);
 }
 
 fn check_nonnegative_amount(amount: i128) {
@@ -60,11 +61,12 @@ fn check_nonnegative_amount(amount: i128) {
     }
 }
 
+#[contract]
 pub struct Token;
 
 #[contractimpl]
 impl TokenTrait for Token {
-    fn initialize(e: Env, admin: Address, decimal: u32, name: Bytes, symbol: Bytes) {
+    fn initialize(e: Env, admin: Address, decimal: u32, name: String, symbol: String) {
         if has_administrator(&e) {
             panic!("already initialized")
         }
@@ -84,46 +86,33 @@ impl TokenTrait for Token {
     }
 
     fn allowance(e: Env, from: Address, spender: Address) -> i128 {
-        read_allowance(&e, from, spender)
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        read_allowance(&e, from, spender).amount
     }
 
-    fn increase_allowance(e: Env, from: Address, spender: Address, amount: i128) {
+    fn approve(e: Env, from: Address, spender: Address, amount: i128, expiration_ledger: u32) {
         from.require_auth();
 
         check_nonnegative_amount(amount);
 
-        let allowance = read_allowance(&e, from.clone(), spender.clone());
-        let new_allowance = allowance
-            .checked_add(amount)
-            .expect("Updated allowance doesn't fit in an i128");
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
 
-        write_allowance(&e, from.clone(), spender.clone(), new_allowance);
-        event::increase_allowance(&e, from, spender, amount);
-    }
-
-    fn decrease_allowance(e: Env, from: Address, spender: Address, amount: i128) {
-        from.require_auth();
-
-        check_nonnegative_amount(amount);
-
-        let allowance = read_allowance(&e, from.clone(), spender.clone());
-        if amount >= allowance {
-            write_allowance(&e, from.clone(), spender.clone(), 0);
-        } else {
-            write_allowance(&e, from.clone(), spender.clone(), allowance - amount);
-        }
-        event::decrease_allowance(&e, from, spender, amount);
+        write_allowance(&e, from.clone(), spender.clone(), amount, expiration_ledger);
+        event::approve(&e, from, spender, amount, expiration_ledger);
     }
 
     fn balance(e: Env, id: Address) -> i128 {
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
         read_balance(&e, id)
     }
 
     fn spendable_balance(e: Env, id: Address) -> i128 {
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
         read_balance(&e, id)
     }
 
     fn authorized(e: Env, id: Address) -> bool {
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
         is_authorized(&e, id)
     }
 
@@ -131,6 +120,9 @@ impl TokenTrait for Token {
         from.require_auth();
 
         check_nonnegative_amount(amount);
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
         spend_balance(&e, from.clone(), amount);
         receive_balance(&e, to.clone(), amount);
         event::transfer(&e, from, to, amount);
@@ -140,6 +132,9 @@ impl TokenTrait for Token {
         spender.require_auth();
 
         check_nonnegative_amount(amount);
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
         spend_allowance(&e, from.clone(), spender, amount);
         spend_balance(&e, from.clone(), amount);
         receive_balance(&e, to.clone(), amount);
@@ -150,6 +145,9 @@ impl TokenTrait for Token {
         from.require_auth();
 
         check_nonnegative_amount(amount);
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
         spend_balance(&e, from.clone(), amount);
         event::burn(&e, from, amount);
     }
@@ -158,6 +156,9 @@ impl TokenTrait for Token {
         spender.require_auth();
 
         check_nonnegative_amount(amount);
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
         spend_allowance(&e, from.clone(), spender, amount);
         spend_balance(&e, from.clone(), amount);
         event::burn(&e, from, amount)
@@ -167,6 +168,9 @@ impl TokenTrait for Token {
         check_nonnegative_amount(amount);
         let admin = read_administrator(&e);
         admin.require_auth();
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
         spend_balance(&e, from.clone(), amount);
         event::clawback(&e, admin, from, amount);
     }
@@ -174,6 +178,9 @@ impl TokenTrait for Token {
     fn set_authorized(e: Env, id: Address, authorize: bool) {
         let admin = read_administrator(&e);
         admin.require_auth();
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
         write_authorization(&e, id.clone(), authorize);
         event::set_authorized(&e, admin, id, authorize);
     }
@@ -182,41 +189,52 @@ impl TokenTrait for Token {
         check_nonnegative_amount(amount);
         let admin = read_administrator(&e);
         admin.require_auth();
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
         receive_balance(&e, to.clone(), amount);
         event::mint(&e, admin, to, amount);
     }
 
+    fn set_admin(e: Env, new_admin: Address) {
+        let admin = read_administrator(&e);
+        admin.require_auth();
+
+        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+
+        write_administrator(&e, &new_admin);
+        event::set_admin(&e, admin, new_admin);
+    }
+
     fn get_min_voting_power(env: Env) -> i128 {
-        let min_voting_power: i128 = env.storage()
-            .get(&DataKey::MinVoteP)
-            .unwrap().unwrap_or(0);
+        let min_voting_power: i128 = env.storage().persistent()
+            .get(&DataKey::MinVoteP).unwrap_or(0);
         min_voting_power
     }
-
-    fn set_min_voting_power(env: Env, min_power: i128) {
-        env.storage().set(&DataKey::MinVoteP, &min_power);
+    
+    fn set_v_pow(env: Env, min_power: i128) {
+        env.storage().persistent().set(&DataKey::MinVoteP, &min_power);
     }
-
+    
     fn get_min_proposal_power(env: Env) -> i128 {
-        let min_proposal_power: i128 = env.storage()
-            .get(&DataKey::MinPropP)
-            .unwrap().unwrap_or(0);
+        let min_proposal_power: i128 = env.storage().persistent()
+            .get(&DataKey::MinPropP).unwrap_or(0);
         min_proposal_power
     }
-
-    fn set_min_proposal_power(env: Env, min_power: i128) {
-        env.storage().set(&DataKey::MinPropP, &min_power);
+    
+    fn set_p_pow(env: Env, min_power: i128) {
+        env.storage().persistent().set(&DataKey::MinPropP, &min_power);
     }
 
     fn decimals(e: Env) -> u32 {
         read_decimal(&e)
     }
 
-    fn name(e: Env) -> Bytes {
+    fn name(e: Env) -> String {
         read_name(&e)
     }
 
-    fn symbol(e: Env) -> Bytes {
+    fn symbol(e: Env) -> String {
         read_symbol(&e)
     }
 }
