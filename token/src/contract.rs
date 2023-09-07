@@ -34,7 +34,7 @@ pub trait TokenTrait {
 
     fn clawback(e: Env, from: Address, amount: i128);
 
-    fn set_authorized(e: Env, id: Address, authorize: bool);
+    fn set_auth(e: Env, id: Address, authorize: bool);
 
     fn mint(e: Env, to: Address, amount: i128);
 
@@ -50,9 +50,9 @@ pub trait TokenTrait {
 
     fn get_min_proposal_power(e: Env) -> i128;
 
-    fn set_p_pow(e: Env, min_power: i128);
+    fn set_p_pow(e: Env, min_power: u32);
 
-    fn set_v_pow(e: Env, min_power: i128);
+    fn set_v_pow(e: Env, min_power: u32);
 }
 
 fn check_nonnegative_amount(amount: i128) {
@@ -175,7 +175,7 @@ impl TokenTrait for Token {
         event::clawback(&e, admin, from, amount);
     }
 
-    fn set_authorized(e: Env, id: Address, authorize: bool) {
+    fn set_auth(e: Env, id: Address, authorize: bool) {
         let admin = read_administrator(&e);
         admin.require_auth();
 
@@ -212,7 +212,7 @@ impl TokenTrait for Token {
         min_voting_power
     }
     
-    fn set_v_pow(env: Env, min_power: i128) {
+    fn set_v_pow(env: Env, min_power: u32) {
         env.storage().persistent().set(&DataKey::MinVoteP, &min_power);
     }
     
@@ -222,7 +222,7 @@ impl TokenTrait for Token {
         min_proposal_power
     }
     
-    fn set_p_pow(env: Env, min_power: i128) {
+    fn set_p_pow(env: Env, min_power: u32) {
         env.storage().persistent().set(&DataKey::MinPropP, &min_power);
     }
 
