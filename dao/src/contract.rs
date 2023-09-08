@@ -68,18 +68,18 @@ impl DaoContractTrait for DaoContract {
         let set_proposal_power_fn: Symbol = symbol_short!("set_p_pow");
         let set_voting_power_fn: Symbol = symbol_short!("set_v_pow");
 
-        let proposal_power_res: Val = env.invoke_contract(&id, &set_proposal_power_fn, vec![&env, proposal_power.into_val(&env)]);
-        let voting_power_res: Val = env.invoke_contract(&id, &set_voting_power_fn, vec![&env, voting_power.into_val(&env)]);
+        let proposal_power_res: Val = env.invoke_contract(&id, &set_proposal_power_fn, vec![&env, proposal_power.into_val(&env)] as Vec<Val>);
+        let voting_power_res: Val = env.invoke_contract(&id, &set_voting_power_fn, vec![&env, voting_power.into_val(&env)] as Vec<Val>);
         for shareholder in shareholders {
             match shareholder {
                 (shareholder_address, amount) => {
                     let shareholder_address_raw: Val = shareholder_address.to_val();
 
-                    let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)];
+                    let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)] as Vec<Val>;
                     let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
 
                     let mint_args: Vec<Val> =
-                        vec![&env, shareholder_address_raw, amount.into_val(&env)];
+                        vec![&env, shareholder_address_raw, amount.into_val(&env)] as Vec<Val>;
                     let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
                 }
             }
