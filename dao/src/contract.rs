@@ -14,7 +14,7 @@ pub trait DaoContractTrait {
         gov_token_symbol: String,
         voting_power: u32,
         proposal_power: u32,
-        shareholders: Vec<(Address, i128)>,
+        shareholders: Map<Address, i128>,
         // shareholders: Vec<Map<Address, i128>>,
     ) -> u32;
     // fn init(
@@ -42,7 +42,7 @@ impl DaoContractTrait for DaoContract {
         gov_token_symbol: String,
         voting_power: u32,
         proposal_power: u32,
-        shareholders: Vec<(Address, i128)>,
+        shareholders: Map<Address, i128>,
         // shareholders: Vec<Map<Address, i128>>,
     ) -> u32 {
         can_init_contract(&env);
@@ -70,19 +70,15 @@ impl DaoContractTrait for DaoContract {
 
         let proposal_power_res: Val = env.invoke_contract(&id, &set_proposal_power_fn, vec![&env, proposal_power.into_val(&env)] as Vec<Val>);
         let voting_power_res: Val = env.invoke_contract(&id, &set_voting_power_fn, vec![&env, voting_power.into_val(&env)] as Vec<Val>);
-        for shareholder in shareholders {
-            match shareholder {
-                (shareholder_address, amount) => {
-                    let shareholder_address_raw: Val = shareholder_address.to_val();
+        for (shareholder_address, amount) in shareholders.iter() {
+            let shareholder_address_raw: Val = shareholder_address.to_val();
 
-                    let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)] as Vec<Val>;
-                    let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
+            let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)] as Vec<Val>;
+            let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
 
-                    let mint_args: Vec<Val> =
-                        vec![&env, shareholder_address_raw, amount.into_val(&env)] as Vec<Val>;
-                    let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
-                }
-            }
+            let mint_args: Vec<Val> =
+                vec![&env, shareholder_address_raw, amount.into_val(&env)] as Vec<Val>;
+            let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
         }
         // set_core_state(
         //     &env,
