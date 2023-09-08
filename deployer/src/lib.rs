@@ -44,10 +44,7 @@ mod test;
 //     --network futurenet
 // deployer_contract_id -> CCC2W6D57JZKJ2BH2JY43QRRLT3ABB72424EVL5WFFWC642BGAPF66DN
 
-// soroban contract deploy \
-//     --wasm target/wasm32-unknown-unknown/release/governance.wasm \
-//     --source juico \
-//     --network futurenet
+// fds
 // dao_contract_id -> CABTZLCXPKKR72VAF5GFBWAJQVWTFIMF6LJALSCXKZMUAEJKNEMPOMB4
 
 // soroban contract deploy \

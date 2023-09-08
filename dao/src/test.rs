@@ -27,7 +27,9 @@ fn test() {
     let salt = BytesN::from_array(&env, &[0; 32]);
     let voting_power = 2;
     let proposal_power = 2;
-    let shareholders: Vec<Map<Address, i128>> = Vec::from_array(&env, [shareholder]);
+    let mut shareholders: Map<Address, i128> = Map::new(&env);
+    shareholders.set(admin1.clone(), 200000i128);
+
     let val = client.init(
         &salt,
         &token_wasm_hash,
