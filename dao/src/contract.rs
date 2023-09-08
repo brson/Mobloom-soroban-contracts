@@ -14,8 +14,8 @@ pub trait DaoContractTrait {
         gov_token_symbol: String,
         voting_power: u32,
         proposal_power: u32,
-        shareholders: Vec<(Address, i128)>,
-        // shareholders: Vec<Map<Address, i128>>,
+        // shareholders: Vec<(Address, i128)>,
+        shareholders: Vec<Map<Address, i128>>,
     ) -> u32;
     // fn init(
     //     env: Env,
@@ -42,8 +42,8 @@ impl DaoContractTrait for DaoContract {
         gov_token_symbol: String,
         voting_power: u32,
         proposal_power: u32,
-        shareholders: Vec<(Address, i128)>,
-        // shareholders: Vec<Map<Address, i128>>,
+        // shareholders: Vec<(Address, i128)>,
+        shareholders: Vec<Map<Address, i128>>,
     ) -> u32 {
         can_init_contract(&env);
         // Deploy the contract using the installed WASM code with given hash.
@@ -68,22 +68,19 @@ impl DaoContractTrait for DaoContract {
         let set_proposal_power_fn: Symbol = symbol_short!("set_p_pow");
         let set_voting_power_fn: Symbol = symbol_short!("set_v_pow");
 
-        let proposal_power_res: Val = env.invoke_contract(&id, &set_proposal_power_fn, vec![&env, proposal_power.into_val(&env)]);
-        let voting_power_res: Val = env.invoke_contract(&id, &set_voting_power_fn, vec![&env, voting_power.into_val(&env)]);
+        let proposal_power_res: Val = env.invoke_contract(&id, &set_proposal_power_fn, vec![&env, proposal_power.into_val(&env)] as Vec<Val>);
+        let voting_power_res: Val = env.invoke_contract(&id, &set_voting_power_fn, vec![&env, voting_power.into_val(&env)] as Vec<Val>);
+
         for shareholder in shareholders {
-            match shareholder {
-                (shareholder_address, amount) => {
-                    let shareholder_address_raw: Val = shareholder_address.to_val();
+            let s = shareholder.values().try_first().unwrap();
+            // let shareholder_address_raw = shareholder.keys().get(0).unwrap().to_val();
+            // let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)];
+            // let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
 
-                    let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)];
-                    let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
-
-                    let mint_args: Vec<Val> =
-                    vec![&env, shareholder_address_raw, amount.into_val(&env)];
-                    let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
-                }
-            }
+            // let mint_args: Vec<Val> = vec![&env, shareholder_address_raw, shareholder.values().into_val(&env)];
+            // let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
         }
+        
         // set_core_state(
         //     &env,
         //     &CoreState {
@@ -92,6 +89,7 @@ impl DaoContractTrait for DaoContract {
         // );
 
         // (id, res)
+        // voting_power
         voting_power
     }
 
