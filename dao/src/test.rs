@@ -20,14 +20,19 @@ fn test() {
     let admin1 = Address::random(&env);
 
     // Deploy contract using deployer, and include an init function to call.
-    let token_name = &"name".into_val(&env);
+    let token_name = "token_name";
+    let token_symbol = "token_symbol";
     let salt = BytesN::from_array(&env, &[0; 32]);
+    let voting_power = 2;
+    let proposal_power = 2;
     let shareholders: Vec<(Address, i128)> = Vec::from_array(&env, [(admin1.clone(), 200000i128)]);
     let (contract_id, init_result) = client.init(
         &salt,
         &token_wasm_hash,
         &token_name,
-        &"symbol".into_val(&env),
+        &proposal_power,
+        &voting_power,
+        &proposal_power,
         &shareholders,
     );
     assert!(init_result.is_void());
