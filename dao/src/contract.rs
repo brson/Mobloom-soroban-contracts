@@ -70,24 +70,20 @@ impl DaoContractTrait for DaoContract {
 
         let proposal_power_res: Val = env.invoke_contract(&id, &set_proposal_power_fn, vec![&env, proposal_power.into_val(&env)]);
         let voting_power_res: Val = env.invoke_contract(&id, &set_voting_power_fn, vec![&env, voting_power.into_val(&env)]);
-        // for shareholder in shareholders.iter() {
-        //     // let shareholder_address_raw = shareholder.keys().to_val();
-        //     // let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)];
-        // }
-        // for shareholder in shareholders {
-        //     match shareholder {
-        //         (shareholder_address, amount) => {
-        //             let shareholder_address_raw: Val = shareholder_address.to_val();
+        for shareholder in shareholders {
+            match shareholder {
+                (shareholder_address, amount) => {
+                    let shareholder_address_raw: Val = shareholder_address.to_val();
 
-        //             let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)];
-        //             let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
+                    let auth_args: Vec<Val> = vec![&env, shareholder_address_raw, true.into_val(&env)];
+                    let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
 
-        //             let mint_args: Vec<Val> =
-        //                 vec![&env, shareholder_address_raw, amount.into_val(&env)];
-        //             let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
-        //         }
-        //     }
-        // }
+                    let mint_args: Vec<Val> =
+                        vec![&env, shareholder_address_raw, amount.into_val(&env)];
+                    let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
+                }
+            }
+        }
         // set_core_state(
         //     &env,
         //     &CoreState {
