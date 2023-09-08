@@ -79,7 +79,7 @@ impl DaoContractTrait for DaoContract {
                     let auth_res: Val = env.invoke_contract(&id, &authorize_fn, auth_args);
 
                     let mint_args: Vec<Val> =
-                        vec![&env, shareholder_address_raw, amount.into_val(&env)];
+                    vec![&env, shareholder_address_raw, amount.into_val(&env)];
                     let mint_res: Val = env.invoke_contract(&id, &mint_fn, mint_args);
                 }
             }
