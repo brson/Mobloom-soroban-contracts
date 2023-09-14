@@ -7,3 +7,20 @@ pub enum SCErrors {
     ContractAlreadyInitiated = 10001,
     InitError = 10002,
 }
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum ContractError {
+    NotInit = 0,
+    MinDurationNotSatisfied = 1,
+    CannotAddNegativeVote = 2,
+    InvalidNonce = 3,
+    AlreadyVoted = 4,
+    InvalidProposalId = 5,
+    NotEnoughPower = 6,
+    TooEarlyToExecute = 7,
+    AllreadyExecuted = 8,
+    ForVotesLessThanAgainstVotes = 9,
+    PropDeadlinePassed = 10
+}

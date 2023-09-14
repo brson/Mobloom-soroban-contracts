@@ -1,3 +1,4 @@
+use crate::proposal::{Proposal, check_min_duration, check_min_prop_power, add_proposal};
 use crate::storage::core::CoreState;
 
 use crate::utils::core::{can_init_contract, set_core_state};
@@ -16,6 +17,11 @@ pub trait DaoContractTrait {
         proposal_power: u32,
         shareholders: Map<Address, i128>,
     ) -> Address ;
+    fn create_proposal(
+        env: Env, 
+        from: Address, 
+        proposal: Proposal
+    ) -> u32;
 }
 
 #[contract]
@@ -77,5 +83,15 @@ impl DaoContractTrait for DaoContract {
         );
 
         id
+    }
+
+    fn create_proposal(env: Env, from: Address, proposal: Proposal) -> u32 {
+        // verify
+        // verify nonce
+
+        // check_min_duration(&env, &proposal);
+        // check_min_prop_power(&env, get_dao_token_client(&env).power(&from));
+        //todo, store the token supply at this point
+        add_proposal(&env, proposal)
     }
 }

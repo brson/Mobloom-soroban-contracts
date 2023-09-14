@@ -12,12 +12,12 @@ pub fn set_core_state(env: &Env, core_state: &CoreState) {
     env.storage().persistent().set(&CoreStorageKeys::CoreState, core_state);
 }
 
-// pub fn get_core_state(env: &Env) -> CoreState {
-//     env.storage()
-//         .get(&CoreStorageKeys::CoreState)
-//         .unwrap()
-//         .unwrap()
-// }
+pub fn get_core_state(env: &Env) -> CoreState {
+    env.storage()
+        .persistent()
+        .get(&CoreStorageKeys::CoreState)
+        .unwrap()
+}
 
 // pub fn get_governance_token(env: &Env) -> (Address, token::Client) {
 //     let core_state: CoreState = get_core_state(&env);
