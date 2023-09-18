@@ -27,6 +27,8 @@ pub enum ProposalStorageKey {
     Nonce(Address),
     // min power to propose
     MinPropP,
+    // min power to vote 
+    MinVoteP,
     //whether a proposal has been executedd
     Executed(u32),
 }

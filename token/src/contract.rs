@@ -6,10 +6,10 @@ use crate::balance::{is_authorized, write_authorization};
 use crate::balance::{read_balance, receive_balance, spend_balance};
 use crate::event;
 use crate::metadata::{read_decimal, read_name, read_symbol, write_metadata};
+use crate::storage_types::DataKey;
 use crate::storage_types::INSTANCE_BUMP_AMOUNT;
 use soroban_sdk::{contract, contractimpl, Address, Env, String};
 use soroban_token_sdk::TokenMetadata;
-use crate::storage_types::DataKey;
 
 pub trait TokenTrait {
     fn initialize(e: Env, admin: Address, decimal: u32, name: String, symbol: String);
@@ -207,23 +207,33 @@ impl TokenTrait for Token {
     }
 
     fn get_min_voting_power(env: Env) -> i128 {
-        let min_voting_power: i128 = env.storage().persistent()
-            .get(&DataKey::MinVoteP).unwrap_or(0);
+        let min_voting_power: i128 = env
+            .storage()
+            .persistent()
+            .get(&DataKey::MinVoteP)
+            .unwrap_or(0);
         min_voting_power
     }
-    
+
     fn set_v_pow(env: Env, min_power: u32) {
-        env.storage().persistent().set(&DataKey::MinVoteP, &min_power);
+        env.storage()
+            .persistent()
+            .set(&DataKey::MinVoteP, &min_power);
     }
-    
+
     fn get_min_proposal_power(env: Env) -> i128 {
-        let min_proposal_power: i128 = env.storage().persistent()
-            .get(&DataKey::MinPropP).unwrap_or(0);
+        let min_proposal_power: i128 = env
+            .storage()
+            .persistent()
+            .get(&DataKey::MinPropP)
+            .unwrap_or(0);
         min_proposal_power
     }
-    
+
     fn set_p_pow(env: Env, min_power: u32) {
-        env.storage().persistent().set(&DataKey::MinPropP, &min_power);
+        env.storage()
+            .persistent()
+            .set(&DataKey::MinPropP, &min_power);
     }
 
     fn decimals(e: Env) -> u32 {

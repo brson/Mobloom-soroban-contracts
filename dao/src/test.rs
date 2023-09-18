@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use crate::{contract::DaoContract, DaoContractClient};
-use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, IntoVal, Vec, String, Map};
+use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, IntoVal, Map, String, Vec};
 
 // The contract that will be deployed by the deployer contract.
 mod contract {
@@ -40,15 +40,5 @@ fn test() {
         &shareholders,
     );
 
-    assert_eq!(val, voting_power)
-
-    // assert!(init_result.is_void());
-    //
-    // // Invoke contract to check that it is initialized.
-    // let client = contract::Client::new(&env, &contract_id);
-    // let sum = client.balance(&admin1);
-    // assert_eq!(sum, 200000);
-    //
-    // let name_of_token = client.name();
-    // assert_eq!(name_of_token, "name".into_val(&env));
+    // assert_eq!(val)
 }

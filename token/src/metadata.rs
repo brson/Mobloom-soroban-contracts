@@ -1,22 +1,25 @@
 use soroban_sdk::{Env, String};
-use soroban_token_sdk::{TokenMetadata, TokenUtils};
+use soroban_token_sdk::metadata;
+use soroban_token_sdk::TokenUtils;
 
 pub fn read_decimal(e: &Env) -> u32 {
     let util = TokenUtils::new(e);
-    util.get_metadata().decimal
+    util.metadata().get_metadata().decimal
 }
 
 pub fn read_name(e: &Env) -> String {
     let util = TokenUtils::new(e);
-    util.get_metadata().name
+    util.metadata().get_metadata().name
 }
 
 pub fn read_symbol(e: &Env) -> String {
     let util = TokenUtils::new(e);
-    util.get_metadata().symbol
+    util.metadata().get_metadata().symbol
 }
 
 pub fn write_metadata(e: &Env, metadata: TokenMetadata) {
     let util = TokenUtils::new(e);
-    util.set_metadata(&metadata);
+    let meta = metadata::Metadata::new(env);
+    let tokenMetadata = meta.get_metadata();
+    util.metadata().set_metadata(&tokenMetadata);
 }

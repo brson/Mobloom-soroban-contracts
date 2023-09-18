@@ -1,9 +1,9 @@
-use soroban_sdk::{
-    contracttype, panic_with_error, Address, BytesN, Env, Val, Symbol,
-    Vec, String
-};
+use soroban_sdk::{contracttype, panic_with_error, Address, BytesN, Env, String, Symbol, Val, Vec};
 
-use crate::{storage::proposal_storage::ProposalStorageKey, errors::ContractError, settings::get_min_prop_duration};
+use crate::{
+    errors::ContractError, settings::get_min_prop_duration,
+    storage::proposal_storage::ProposalStorageKey,
+};
 
 #[contracttype]
 #[derive(Clone, Debug)]
@@ -26,8 +26,7 @@ pub struct ProposalInstr {
 pub struct Proposal {
     pub end_time: u64,
     // instrunctions will be executed in sequence
-    pub url: String
-    // pub instr: Vec<ProposalInstr>,
+    pub url: String, // pub instr: Vec<ProposalInstr>,
 }
 
 #[contracttype]
@@ -40,8 +39,9 @@ pub struct VotesCount {
 // add prop and return its id
 pub fn add_proposal(env: &Env, proposal: Proposal) -> u32 {
     let prop_id = get_and_inc_prop_id(env);
-
-    env.storage().persistent().set(&ProposalStorageKey::Proposal(prop_id), &proposal);
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::Proposal(prop_id), &proposal);
     set_prop_start_ledger(env, prop_id, env.ledger().sequence());
 
     prop_id
@@ -61,7 +61,9 @@ fn get_and_inc_prop_id(env: &Env) -> u32 {
         .get(&ProposalStorageKey::ProposalId)
         .unwrap_or(0u32);
 
-    env.storage().persistent().set(&ProposalStorageKey::ProposalId, &(prev + 1));
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::ProposalId, &(prev + 1));
     prev
 }
 
@@ -73,9 +75,10 @@ pub fn check_min_duration(env: &Env, proposal: &Proposal) {
 }
 
 pub fn set_voted(env: &Env, prop_id: u32, voter: Address) {
-    env.storage()
-        .persistent()
-        .set(&ProposalStorageKey::Voted(ProposalVoted { voter, prop_id }), &true)
+    env.storage().persistent().set(
+        &ProposalStorageKey::Voted(ProposalVoted { voter, prop_id }),
+        &true,
+    )
 }
 
 pub fn get_voted(env: &Env, prop_id: u32, voter: Address) -> bool {
@@ -112,7 +115,9 @@ pub fn get_for_votes(env: &Env, prop_id: u32) -> i128 {
 }
 
 fn set_for_votes(env: &Env, prop_id: u32, amount: i128) {
-    env.storage().persistent().set(&ProposalStorageKey::ForVotes(prop_id), &amount)
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::ForVotes(prop_id), &amount)
 }
 
 pub fn add_for_votes(env: &Env, prop_id: u32, amount: i128) {
@@ -132,7 +137,9 @@ pub fn get_against_votes(env: &Env, prop_id: u32) -> i128 {
 }
 
 fn set_against_votes(env: &Env, prop_id: u32, amount: i128) {
-    env.storage().persistent().set(&ProposalStorageKey::AgainstV(prop_id), &amount)
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::AgainstV(prop_id), &amount)
 }
 
 pub fn add_against_votes(env: &Env, prop_id: u32, amount: i128) {
@@ -152,7 +159,9 @@ pub fn get_abstain_votes(env: &Env, prop_id: u32) -> i128 {
 }
 
 fn set_abstain_votes(env: &Env, prop_id: u32, amount: i128) {
-    env.storage().persistent().set(&ProposalStorageKey::AbstainV(prop_id), &amount)
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::AbstainV(prop_id), &amount)
 }
 
 pub fn add_abstain_votes(env: &Env, prop_id: u32, amount: i128) {
@@ -165,7 +174,15 @@ pub fn add_abstain_votes(env: &Env, prop_id: u32, amount: i128) {
 }
 
 pub fn set_min_proposal_power(env: &Env, min_power: i128) {
-    env.storage().persistent().set(&ProposalStorageKey::MinPropP, &min_power)
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::MinPropP, &min_power)
+}
+
+pub fn set_min_vote_power(env: &Env, min_power: u32) {
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::MinVoteP, &min_power)
 }
 
 pub fn get_min_proposal_power(env: &Env) -> i128 {
@@ -175,8 +192,21 @@ pub fn get_min_proposal_power(env: &Env) -> i128 {
         .unwrap_or(0)
 }
 
+pub fn get_min_vote_power(env: &Env) -> u32 {
+    env.storage()
+        .persistent()
+        .get(&ProposalStorageKey::MinVoteP)
+        .unwrap_or(0)
+}
+
 pub fn check_min_prop_power(env: &Env, power: i128) {
     if get_min_proposal_power(env) > power {
+        panic_with_error!(env, ContractError::NotEnoughPower)
+    }
+}
+
+pub fn check_min_vote_power(env: &Env, power: u32) {
+    if get_min_vote_power(env) > power {
         panic_with_error!(env, ContractError::NotEnoughPower)
     }
 }
@@ -194,7 +224,9 @@ pub fn votes_counts(env: &Env, prop_id: u32) -> VotesCount {
 }
 
 pub fn set_executed(env: &Env, prop_id: u32) {
-    env.storage().persistent().set(&ProposalStorageKey::Executed(prop_id), &true)
+    env.storage()
+        .persistent()
+        .set(&ProposalStorageKey::Executed(prop_id), &true)
 }
 
 pub fn executed(env: &Env, prop_id: u32) -> bool {

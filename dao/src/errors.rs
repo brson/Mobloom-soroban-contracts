@@ -22,5 +22,13 @@ pub enum ContractError {
     TooEarlyToExecute = 7,
     AllreadyExecuted = 8,
     ForVotesLessThanAgainstVotes = 9,
-    PropDeadlinePassed = 10
+    PropDeadlinePassed = 10,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+pub enum VoteError {
+    NotAMember = 0,
+    ProposalExpired = 1,
+    WrongVoteParam = 2,
 }
