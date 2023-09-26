@@ -5,6 +5,8 @@ use crate::{
     storage::proposal_storage::ProposalStorageKey,
 };
 
+use crate::errors::ExecutionError;
+
 #[contracttype]
 #[derive(Clone, Debug)]
 pub struct ProposalVoted {
@@ -16,7 +18,7 @@ pub struct ProposalVoted {
 #[derive(Clone, Debug)]
 pub struct ProposalInstr {
     //contract id
-    pub c_id: BytesN<32>,
+    pub c_id: Address,
     pub fun_name: Symbol,
     pub args: Vec<Val>,
 }
@@ -27,6 +29,8 @@ pub struct Proposal {
     pub end_time: u64,
     // instrunctions will be executed in sequence
     pub url: String, // pub instr: Vec<ProposalInstr>,
+    pub min_quorum: i128,
+    pub instr: Vec<ProposalInstr>,
 }
 
 #[contracttype]
@@ -234,4 +238,21 @@ pub fn executed(env: &Env, prop_id: u32) -> bool {
         .persistent()
         .get(&ProposalStorageKey::Executed(prop_id))
         .unwrap_or(false)
+}
+
+pub fn min_quorum_met(env: &Env, prop_id: u32) {
+    let proposal = get_proposal(&env, prop_id);
+    let votes = votes_counts(&env, prop_id);
+    let t_votes = votes.v_abstain + votes.v_against + votes.v_for;
+    if t_votes >= proposal.min_quorum {
+        panic_with_error!(env, ExecutionError::MinParticipNotMet)
+    }
+}
+
+pub fn for_votes_win(env: &Env, prop_id: u32) {
+    let for_votes = get_for_votes(&env, prop_id);
+    let agains_votes = get_against_votes(&env, prop_id);
+    if for_votes >= agains_votes {
+        panic_with_error!(env, ExecutionError::ForProposalFail)
+    }
 }

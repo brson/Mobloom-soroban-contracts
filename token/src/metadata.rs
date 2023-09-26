@@ -17,9 +17,8 @@ pub fn read_symbol(e: &Env) -> String {
     util.metadata().get_metadata().symbol
 }
 
-pub fn write_metadata(e: &Env, metadata: TokenMetadata) {
+pub fn write_metadata(e: &Env, metadata: metadata::TokenMetadata) {
     let util = TokenUtils::new(e);
-    let meta = metadata::Metadata::new(env);
-    let tokenMetadata = meta.get_metadata();
-    util.metadata().set_metadata(&tokenMetadata);
+    let meta = metadata::Metadata::new(e);
+    util.metadata().set_metadata(&metadata);
 }

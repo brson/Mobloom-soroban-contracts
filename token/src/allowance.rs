@@ -32,6 +32,8 @@ pub fn write_allowance(
         expiration_ledger,
     };
 
+    let low_watermarks = expiration_ledger / 2;
+
     if amount > 0 && expiration_ledger < e.ledger().sequence() {
         panic!("expiration_ledger is less than ledger seq when amount > 0")
     }
@@ -42,6 +44,7 @@ pub fn write_allowance(
     if amount > 0 {
         e.storage().temporary().bump(
             &key,
+            low_watermarks,
             expiration_ledger
                 .checked_sub(e.ledger().sequence())
                 .unwrap(),

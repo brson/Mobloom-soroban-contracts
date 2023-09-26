@@ -7,9 +7,11 @@ use crate::balance::{read_balance, receive_balance, spend_balance};
 use crate::event;
 use crate::metadata::{read_decimal, read_name, read_symbol, write_metadata};
 use crate::storage_types::DataKey;
-use crate::storage_types::INSTANCE_BUMP_AMOUNT;
+use crate::storage_types::{
+    INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK, INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+};
 use soroban_sdk::{contract, contractimpl, Address, Env, String};
-use soroban_token_sdk::TokenMetadata;
+use soroban_token_sdk::metadata;
 
 pub trait TokenTrait {
     fn initialize(e: Env, admin: Address, decimal: u32, name: String, symbol: String);
@@ -45,14 +47,6 @@ pub trait TokenTrait {
     fn name(e: Env) -> String;
 
     fn symbol(e: Env) -> String;
-
-    fn get_min_voting_power(e: Env) -> i128;
-
-    fn get_min_proposal_power(e: Env) -> i128;
-
-    fn set_p_pow(e: Env, min_power: u32);
-
-    fn set_v_pow(e: Env, min_power: u32);
 }
 
 fn check_nonnegative_amount(amount: i128) {
@@ -75,18 +69,22 @@ impl TokenTrait for Token {
             panic!("Decimal must fit in a u8");
         }
 
+        let meta = metadata::Metadata::new(&e);
         write_metadata(
             &e,
-            TokenMetadata {
-                decimal,
-                name,
-                symbol,
+            metadata::TokenMetadata {
+                decimal: decimal,
+                name: name,
+                symbol: symbol,
             },
         )
     }
 
     fn allowance(e: Env, from: Address, spender: Address) -> i128 {
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
         read_allowance(&e, from, spender).amount
     }
 
@@ -95,24 +93,36 @@ impl TokenTrait for Token {
 
         check_nonnegative_amount(amount);
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         write_allowance(&e, from.clone(), spender.clone(), amount, expiration_ledger);
         event::approve(&e, from, spender, amount, expiration_ledger);
     }
 
     fn balance(e: Env, id: Address) -> i128 {
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
         read_balance(&e, id)
     }
 
     fn spendable_balance(e: Env, id: Address) -> i128 {
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
         read_balance(&e, id)
     }
 
     fn authorized(e: Env, id: Address) -> bool {
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
         is_authorized(&e, id)
     }
 
@@ -121,7 +131,10 @@ impl TokenTrait for Token {
 
         check_nonnegative_amount(amount);
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         spend_balance(&e, from.clone(), amount);
         receive_balance(&e, to.clone(), amount);
@@ -133,7 +146,10 @@ impl TokenTrait for Token {
 
         check_nonnegative_amount(amount);
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         spend_allowance(&e, from.clone(), spender, amount);
         spend_balance(&e, from.clone(), amount);
@@ -146,7 +162,10 @@ impl TokenTrait for Token {
 
         check_nonnegative_amount(amount);
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         spend_balance(&e, from.clone(), amount);
         event::burn(&e, from, amount);
@@ -157,7 +176,10 @@ impl TokenTrait for Token {
 
         check_nonnegative_amount(amount);
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         spend_allowance(&e, from.clone(), spender, amount);
         spend_balance(&e, from.clone(), amount);
@@ -169,7 +191,10 @@ impl TokenTrait for Token {
         let admin = read_administrator(&e);
         admin.require_auth();
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         spend_balance(&e, from.clone(), amount);
         event::clawback(&e, admin, from, amount);
@@ -179,7 +204,10 @@ impl TokenTrait for Token {
         let admin = read_administrator(&e);
         admin.require_auth();
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         write_authorization(&e, id.clone(), authorize);
         event::set_authorized(&e, admin, id, authorize);
@@ -190,7 +218,10 @@ impl TokenTrait for Token {
         let admin = read_administrator(&e);
         admin.require_auth();
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         receive_balance(&e, to.clone(), amount);
         event::mint(&e, admin, to, amount);
@@ -200,40 +231,13 @@ impl TokenTrait for Token {
         let admin = read_administrator(&e);
         admin.require_auth();
 
-        e.storage().instance().bump(INSTANCE_BUMP_AMOUNT);
+        e.storage().instance().bump(
+            INSTANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            INSTANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
 
         write_administrator(&e, &new_admin);
         event::set_admin(&e, admin, new_admin);
-    }
-
-    fn get_min_voting_power(env: Env) -> i128 {
-        let min_voting_power: i128 = env
-            .storage()
-            .persistent()
-            .get(&DataKey::MinVoteP)
-            .unwrap_or(0);
-        min_voting_power
-    }
-
-    fn set_v_pow(env: Env, min_power: u32) {
-        env.storage()
-            .persistent()
-            .set(&DataKey::MinVoteP, &min_power);
-    }
-
-    fn get_min_proposal_power(env: Env) -> i128 {
-        let min_proposal_power: i128 = env
-            .storage()
-            .persistent()
-            .get(&DataKey::MinPropP)
-            .unwrap_or(0);
-        min_proposal_power
-    }
-
-    fn set_p_pow(env: Env, min_power: u32) {
-        env.storage()
-            .persistent()
-            .set(&DataKey::MinPropP, &min_power);
     }
 
     fn decimals(e: Env) -> u32 {

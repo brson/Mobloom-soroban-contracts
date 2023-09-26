@@ -32,3 +32,10 @@ pub enum VoteError {
     ProposalExpired = 1,
     WrongVoteParam = 2,
 }
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+pub enum ExecutionError {
+    MinParticipNotMet = 0,
+    ForProposalFail = 1,
+}

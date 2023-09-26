@@ -1,6 +1,8 @@
 use crate::proposal::{
     add_abstain_votes, add_against_votes, add_for_votes, add_proposal, check_min_duration,
-    check_min_vote_power, check_voted, get_proposal, set_min_vote_power, Proposal,
+    check_min_vote_power, check_voted, executed, for_votes_win, get_proposal, get_voted,
+    min_quorum_met, set_executed, set_min_vote_power, set_voted, votes_counts, Proposal,
+    VotesCount,
 };
 use crate::storage::core::CoreState;
 
@@ -11,6 +13,7 @@ use soroban_sdk::{
     IntoVal, Map, String, Symbol, Val, Vec,
 };
 
+use crate::errors::ExecutionError;
 use crate::errors::VoteError;
 
 pub trait DaoContractTrait {
@@ -26,6 +29,9 @@ pub trait DaoContractTrait {
     ) -> Address;
     fn create_proposal(env: Env, from: Address, proposal: Proposal) -> u32;
     fn vote(env: Env, from: Address, prop_id: u32, power: u32, vote: u32);
+    fn get_votes(env: Env, prop_id: u32) -> VotesCount;
+    fn have_voted(env: Env, prop_id: u32, vote: Address) -> bool;
+    fn execute(env: Env, prop_id: u32) -> Vec<Val>;
 }
 
 #[contract]
@@ -107,22 +113,65 @@ impl DaoContractTrait for DaoContract {
         if !core_state.shareholders.contains(from.clone()) {
             panic_with_error!(env, VoteError::NotAMember)
         }
+
         // 2. Check if already voted
         check_voted(&env, prop_id, from.clone());
+
         // 3. Check if has enough voting power to vote
         check_min_vote_power(&env, power);
+
         // 4. Check deadline
         let proposal = get_proposal(&env, prop_id);
         check_min_duration(&env, &proposal);
+
         // 5. Vote
         if vote == 0 {
-            add_against_votes(&env, prop_id, 1)
+            add_against_votes(&env, prop_id, 1);
+            set_voted(&env, prop_id, from);
         } else if vote == 1 {
-            add_for_votes(&env, prop_id, 1)
+            add_for_votes(&env, prop_id, 1);
+            set_voted(&env, prop_id, from);
         } else if vote == 2 {
-            add_abstain_votes(&env, prop_id, 1)
+            add_abstain_votes(&env, prop_id, 1);
+            set_voted(&env, prop_id, from);
         } else {
             panic_with_error!(env, VoteError::WrongVoteParam)
         }
+    }
+
+    fn execute(env: Env, prop_id: u32) -> Vec<Val> {
+        let proposal = get_proposal(&env, prop_id);
+        // 1. Check deadline
+        check_min_duration(&env, &proposal);
+
+        // 2. Check if min quorum is met
+        min_quorum_met(&env, prop_id);
+
+        // 3. Check if "for" votes beat "against" votes
+        for_votes_win(&env, prop_id);
+
+        // 4. Check if executed
+        executed(&env, prop_id);
+
+        // 5. Execute
+        let mut exec_results: Vec<Val> = Vec::new(&env);
+        for instruct in proposal.instr {
+            let res: Val = env.invoke_contract(&instruct.c_id, &instruct.fun_name, instruct.args);
+            exec_results.push_front(res);
+        }
+
+        // 6. Set executed to true
+        set_executed(&env, prop_id);
+
+        // 7. Return results
+        exec_results
+    }
+
+    fn get_votes(env: Env, prop_id: u32) -> VotesCount {
+        votes_counts(&env, prop_id)
+    }
+
+    fn have_voted(env: Env, prop_id: u32, voter: Address) -> bool {
+        get_voted(&env, prop_id, voter)
     }
 }

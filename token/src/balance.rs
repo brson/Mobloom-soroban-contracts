@@ -1,10 +1,16 @@
-use crate::storage_types::{DataKey, BALANCE_BUMP_AMOUNT};
+use crate::storage_types::{
+    DataKey, BALANCE_BUMP_AMOUNT_HIGH_WATERMARK, BALANCE_BUMP_AMOUNT_LOW_WATERMARK,
+};
 use soroban_sdk::{Address, Env};
 
 pub fn read_balance(e: &Env, addr: Address) -> i128 {
     let key = DataKey::Balance(addr);
     if let Some(balance) = e.storage().persistent().get::<DataKey, i128>(&key) {
-        e.storage().persistent().bump(&key, BALANCE_BUMP_AMOUNT);
+        e.storage().persistent().bump(
+            &key,
+            BALANCE_BUMP_AMOUNT_LOW_WATERMARK,
+            BALANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
         balance
     } else {
         0
@@ -14,7 +20,11 @@ pub fn read_balance(e: &Env, addr: Address) -> i128 {
 fn write_balance(e: &Env, addr: Address, amount: i128) {
     let key = DataKey::Balance(addr);
     e.storage().persistent().set(&key, &amount);
-    e.storage().persistent().bump(&key, BALANCE_BUMP_AMOUNT);
+    e.storage().persistent().bump(
+        &key,
+        BALANCE_BUMP_AMOUNT_LOW_WATERMARK,
+        BALANCE_BUMP_AMOUNT_HIGH_WATERMARK,
+    );
 }
 
 pub fn receive_balance(e: &Env, addr: Address, amount: i128) {
