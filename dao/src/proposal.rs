@@ -1,4 +1,6 @@
-use soroban_sdk::{contracttype, panic_with_error, Address, BytesN, Env, String, Symbol, Val, Vec};
+use soroban_sdk::{
+    contracttype, panic_with_error, symbol_short, Address, BytesN, Env, String, Symbol, Val, Vec,
+};
 
 use crate::{
     errors::ContractError, settings::get_min_prop_duration,
@@ -29,8 +31,8 @@ pub struct Proposal {
     pub end_time: u64,
     // instrunctions will be executed in sequence
     pub url: String, // pub instr: Vec<ProposalInstr>,
-    pub min_quorum: i128,
-    pub instr: Vec<ProposalInstr>,
+                     // pub min_quorum: i128,
+                     // pub instr: Vec<ProposalInstr>,
 }
 
 #[contracttype]
@@ -240,14 +242,14 @@ pub fn executed(env: &Env, prop_id: u32) -> bool {
         .unwrap_or(false)
 }
 
-pub fn min_quorum_met(env: &Env, prop_id: u32) {
-    let proposal = get_proposal(&env, prop_id);
-    let votes = votes_counts(&env, prop_id);
-    let t_votes = votes.v_abstain + votes.v_against + votes.v_for;
-    if t_votes >= proposal.min_quorum {
-        panic_with_error!(env, ExecutionError::MinParticipNotMet)
-    }
-}
+// pub fn min_quorum_met(env: &Env, prop_id: u32) {
+//     let proposal = get_proposal(&env, prop_id);
+//     let votes = votes_counts(&env, prop_id);
+//     let t_votes = votes.v_abstain + votes.v_against + votes.v_for;
+//     if t_votes >= proposal.min_quorum {
+//         panic_with_error!(env, ExecutionError::MinParticipNotMet)
+//     }
+// }
 
 pub fn for_votes_win(env: &Env, prop_id: u32) {
     let for_votes = get_for_votes(&env, prop_id);

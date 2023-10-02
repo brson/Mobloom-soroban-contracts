@@ -30,25 +30,42 @@ impl Deployer {
 mod test;
 
 // soroban contract install --wasm ../dao/target/wasm32-unknown-unknown/release/governance.wasm
-// dao-wasm-hash -> 5c286c5f20ad37ee8992ddaa99973dfe52063074facb4ae109bc7810ffe3a95c
+// dao-wasm-hash -> ee1c29af589ee186ca7ea23ed79baaa90ed3f511a74912c1376eb408035adcb2
 
 // soroban contract install --wasm ../token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
-// token-wasm-hash -> d97bdb32454f36648f8e291d9995c0985879a8fb78519c8a8cb4143c7c51f3ff
+// token-wasm-hash -> cf2318b87338b80ce75d0276244f9be3a131d74656a7fecd1d92da0eb8ab09e3
 
-// soroban contract deploy \
+// soroban --vv contract deploy \
 //     --wasm target/wasm32-unknown-unknown/release/soroban_deployer_contract.wasm \
 //     --source juico \
 //     --network futurenet
-// deployer_contract_id -> CBMFJGHFAGPVH2FXQQK7QDBLVFF3AQNZ5XRYSMOJKPHITV3GH4CPT6BX
+// deployer_contract_id -> CBLEY56J52CQVKH73BRCEWWMTLXM5JDHO55OGOW5CGJEHO6CZ6YTUQGG
 
 // soroban contract deploy \
 //     --wasm target/wasm32-unknown-unknown/release/governance.wasm \
 //     --source juico \
 //     --network futurenet
-// dao_contract_id -> CDJW6WIVGMEFASX3REG5PEIHLDHMAMDDYU72537LJJ57QZZ5WQKQS5GL
+// dao_contract_id -> CBTKPVZAJXD5ZPK5HMTKS22HUOMIFY52FKXA6H54J7S4WUOQSB7GDNKX
 
 // soroban contract deploy \
 //     --wasm target/wasm32-unknown-unknown/release/soroban_token_contract.wasm \
 //     --source juico \
 //     --network futurenet
-// token_contract_id -> CB4NVEPGSB4XFDOJ2ONCIZVITWTGA4CBDBW6YA6QAG7JFH3QU5DRQPMJ
+// token_contract_id -> CCQNGCPYYJXIGOY4KEWVN6QGKN7N2EFJIRNKUJDVEPTT5ANKITGXBNE3
+
+// ------------------------------------ FOR RESTORATION ------------------------------------
+
+// soroban --vv contract restore \
+//     --id CAGGNI3F7IORBOFKEHOPVD2RLCSRTAQADUF6CVARTT2JHAZOYE2ARBKA \
+//     --source juico \
+//     --network futurenet
+
+// soroban --vv contract invoke \
+//     --id CAGGNI3F7IORBOFKEHOPVD2RLCSRTAQADUF6CVARTT2JHAZOYE2ARBKA \
+//     --source juico \
+//     --network futurenet -- -h
+
+// soroban --vv contract restore \
+//     --wasm-hash 0c66a365fa1d10b8aa21dcfa8f5158a51982001d0be154119cf493832ec13408 \
+//     --source juico \
+//     --network futurenet
