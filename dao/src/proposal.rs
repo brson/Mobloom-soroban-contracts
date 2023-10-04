@@ -30,9 +30,10 @@ pub struct ProposalInstr {
 pub struct Proposal {
     pub end_time: u64,
     // instrunctions will be executed in sequence
-    pub url: String, // pub instr: Vec<ProposalInstr>,
-                     // pub min_quorum: i128,
-                     // pub instr: Vec<ProposalInstr>,
+    pub url: String,
+    // pub instr: Vec<ProposalInstr>,
+    // pub min_quorum: i128,
+    pub min_quo: u64,
 }
 
 #[contracttype]

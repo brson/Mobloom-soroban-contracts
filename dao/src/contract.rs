@@ -10,13 +10,13 @@ use crate::proposal::{
     for_votes_win,
     get_proposal,
     get_voted,
+    // min_quorum_met,
     set_executed,
     set_min_vote_power,
     set_voted,
     votes_counts,
     Proposal,
     VotesCount,
-    // min_quorum_met
 };
 use crate::storage::core::CoreState;
 
@@ -45,7 +45,7 @@ pub trait DaoContractTrait {
     fn vote(env: Env, from: Address, prop_id: u32, power: u32, vote: u32);
     fn get_votes(env: Env, prop_id: u32) -> VotesCount;
     fn have_voted(env: Env, prop_id: u32, vote: Address) -> bool;
-    // fn execute(env: Env, prop_id: u32) -> Vec<Val>;
+    fn execute(env: Env, prop_id: u32) -> Vec<Val>;
 }
 
 #[contract]
@@ -153,33 +153,33 @@ impl DaoContractTrait for DaoContract {
         }
     }
 
-    // fn execute(env: Env, prop_id: u32) -> Vec<Val> {
-    //     let proposal = get_proposal(&env, prop_id);
-    //     // 1. Check deadline
-    //     check_min_duration(&env, &proposal);
+    fn execute(env: Env, prop_id: u32) -> Vec<Val> {
+        let proposal = get_proposal(&env, prop_id);
+        // 1. Check deadline
+        check_min_duration(&env, &proposal);
 
-    //     // 2. Check if min quorum is met
-    //     min_quorum_met(&env, prop_id);
+        // 2. Check if min quorum is met
+        // min_quorum_met(&env, prop_id);
 
-    //     // 3. Check if "for" votes beat "against" votes
-    //     for_votes_win(&env, prop_id);
+        // 3. Check if "for" votes beat "against" votes
+        for_votes_win(&env, prop_id);
 
-    //     // 4. Check if executed
-    //     executed(&env, prop_id);
+        // 4. Check if executed
+        executed(&env, prop_id);
 
-    //     // 5. Execute
-    //     let mut exec_results: Vec<Val> = Vec::new(&env);
-    //     for instruct in proposal.instr {
-    //         let res: Val = env.invoke_contract(&instruct.c_id, &instruct.fun_name, instruct.args);
-    //         exec_results.push_front(res);
-    //     }
+        // 5. Execute
+        let mut exec_results: Vec<Val> = Vec::new(&env);
+        // for instruct in proposal.instr {
+        //     let res: Val = env.invoke_contract(&instruct.c_id, &instruct.fun_name, instruct.args);
+        //     exec_results.push_front(res);
+        // }
 
-    //     // 6. Set executed to true
-    //     set_executed(&env, prop_id);
+        // 6. Set executed to true
+        set_executed(&env, prop_id);
 
-    //     // 7. Return results
-    //     exec_results
-    // }
+        // 7. Return results
+        exec_results
+    }
 
     fn get_votes(env: Env, prop_id: u32) -> VotesCount {
         votes_counts(&env, prop_id)
