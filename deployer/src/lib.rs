@@ -30,7 +30,7 @@ impl Deployer {
 mod test;
 
 // soroban contract install --wasm ../dao/target/wasm32-unknown-unknown/release/governance.wasm
-// dao-wasm-hash -> f850e236ebe99e38a4043ea6e8b9533022ce7bcbd07b2e7fd1a8449670433941
+// dao-wasm-hash -> 7f9630c0227d7a495bda4f7c39616dfb38d670fff7152c1aaac3f18bcf27e6ec
 
 // soroban contract install --wasm ../token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
 // token-wasm-hash -> cf2318b87338b80ce75d0276244f9be3a131d74656a7fecd1d92da0eb8ab09e3

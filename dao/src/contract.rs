@@ -3,7 +3,7 @@ use crate::proposal::{
     add_against_votes,
     add_for_votes,
     add_proposal,
-    check_min_duration,
+    // check_min_duration,
     check_min_vote_power,
     check_voted,
     executed,
@@ -136,7 +136,7 @@ impl DaoContractTrait for DaoContract {
 
         // 4. Check deadline
         let proposal = get_proposal(&env, prop_id);
-        check_min_duration(&env, &proposal);
+        // check_min_duration(&env, &proposal);
 
         // 5. Vote
         if vote == 0 {
@@ -156,7 +156,7 @@ impl DaoContractTrait for DaoContract {
     fn execute(env: Env, prop_id: u32) -> Vec<Val> {
         let proposal = get_proposal(&env, prop_id);
         // 1. Check deadline
-        check_min_duration(&env, &proposal);
+        // check_min_duration(&env, &proposal);
 
         // 2. Check if min quorum is met
         // min_quorum_met(&env, prop_id);

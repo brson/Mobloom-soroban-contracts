@@ -28,12 +28,11 @@ pub struct ProposalInstr {
 #[contracttype]
 #[derive(Clone, Debug)]
 pub struct Proposal {
-    pub end_time: u64,
-    // instrunctions will be executed in sequence
+    // pub end_time: u64,
     pub url: String,
     // pub instr: Vec<ProposalInstr>,
-    // pub min_quorum: i128,
-    pub min_quo: u64,
+    // pub min_quo: i128,
+    // pub min_quo: u64,
 }
 
 #[contracttype]
@@ -74,12 +73,12 @@ fn get_and_inc_prop_id(env: &Env) -> u32 {
     prev
 }
 
-pub fn check_min_duration(env: &Env, proposal: &Proposal) {
-    let min_duration = get_min_prop_duration(env);
-    if proposal.end_time - env.ledger().timestamp() < (min_duration as u64) {
-        panic_with_error!(env, ContractError::MinDurationNotSatisfied)
-    }
-}
+// pub fn check_min_duration(env: &Env, proposal: &Proposal) {
+//     let min_duration = get_min_prop_duration(env);
+//     if proposal.end_time - env.ledger().timestamp() < (min_duration as u64) {
+//         panic_with_error!(env, ContractError::MinDurationNotSatisfied)
+//     }
+// }
 
 pub fn set_voted(env: &Env, prop_id: u32, voter: Address) {
     env.storage().persistent().set(
