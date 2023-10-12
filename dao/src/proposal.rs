@@ -28,11 +28,10 @@ pub struct ProposalInstr {
 #[contracttype]
 #[derive(Clone, Debug)]
 pub struct Proposal {
-    // pub end_time: u64,
+    pub end_time: u64,
     pub url: String,
     // pub instr: Vec<ProposalInstr>,
     // pub min_quo: i128,
-    // pub min_quo: u64,
 }
 
 #[contracttype]
