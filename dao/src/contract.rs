@@ -19,6 +19,10 @@ use crate::proposal::{
     VotesCount,
 };
 use crate::storage::core::CoreState;
+use crate::storage::core::{
+    PERSISTENT_BUMP_AMOUNT_HIGH_WATERMARK, PERSISTENT_BUMP_AMOUNT_LOW_WATERMARK,
+};
+use crate::storage::proposal_storage::ProposalStorageKey;
 
 use crate::utils::core::{can_init_contract, get_core_state, set_core_state};
 
@@ -122,6 +126,7 @@ impl DaoContractTrait for DaoContract {
     }
 
     fn vote(env: Env, from: Address, prop_id: u32, power: u32, vote: u32) {
+        let key = ProposalStorageKey::Proposal(prop_id);
         // 1. Check if DAO member
         let core_state = get_core_state(&env);
         if !core_state.shareholders.contains(from.clone()) {
@@ -151,6 +156,11 @@ impl DaoContractTrait for DaoContract {
         } else {
             panic_with_error!(env, VoteError::WrongVoteParam)
         }
+        env.storage().persistent().bump(
+            &key,
+            PERSISTENT_BUMP_AMOUNT_LOW_WATERMARK,
+            PERSISTENT_BUMP_AMOUNT_HIGH_WATERMARK,
+        );
     }
 
     fn execute(env: Env, prop_id: u32) -> Vec<Val> {
